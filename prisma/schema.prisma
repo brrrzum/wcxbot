@@ -1,0 +1,52 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Team {
+  id           String    @id @default(uuid())
+  name         String    @unique
+  code         String    @unique // e.g., "NED", "JPN"
+  homeFixtures Fixture[] @relation("HomeTeam")
+  awayFixtures Fixture[] @relation("AwayTeam")
+  facts        Fact[]
+}
+
+model Fixture {
+  id         String   @id @default(uuid())
+  homeTeamId String
+  homeTeam   Team     @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeamId String
+  awayTeam   Team     @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  date       DateTime
+  stage      String   // e.g., "Group Stage", "Quarter-Final"
+}
+
+model Fact {
+  id            String   @id @default(uuid())
+  teamId        String
+  team          Team     @relation(fields: [teamId], references: [id])
+  category      String   // "MILESTONE", "CURSE", "UNUSUAL_EVENT"
+  year          Int
+  context       String   @db.Text
+  tweetTemplate String   @db.Text
+}
+
+model HeadToHeadStats {
+  id             String @id @default(uuid())
+  teamAId        String
+  teamBId        String
+  previousMatches Int    @default(0)
+  totalGoals     Int    @default(0)
+  iconicMomentId String?
+}
